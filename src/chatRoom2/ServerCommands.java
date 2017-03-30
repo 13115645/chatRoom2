@@ -8,6 +8,7 @@ public class ServerCommands
 	private static final String serverShutdownRequest = "shutdownallclientsandstarttimer";
 	private static final String serverKickRequest = "kickedFromTheServer";
 	private static final String terminateClient = "terminate";
+	private static final String closeinstantly = "closeallalicents";
 
 	/*
 	 * If the server makes a shutdown request
@@ -32,5 +33,16 @@ public class ServerCommands
 	{
 		return terminateClient;
 	}
+
+	/*
+	 * closes all clients and shuts down terminates the clients instantly
+	 */
+	public static String getCloseinstantly()
+	{
+		return closeinstantly;
+	}
+	
+	
+	
 
 }

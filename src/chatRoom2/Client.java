@@ -84,15 +84,48 @@ public class Client
 
 	}
 
+	private static void StartProgressBar()
+	{
+		progressBar.setVisible(true);
+		t = new Timer(1000, new ActionListener()
+		{
+
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				// TODO Auto-generated method stub
+
+				count--;
+				// decrease the value of the progress bar as the as the
+				// count is decreasing
+				progressBar.setValue((int) (count * (1.6)));
+				countDownLabel.setText("Loggin out in " + count);
+
+				if (count == 30)
+				{
+					MessageUtils.appendToPane(msg_area, "Logging out in 30 seconds", Color.LIGHT_GRAY);
+				} else if (count <= 10)
+				{
+					MessageUtils.appendToPane(msg_area, "Logging out in " + count + "\n", Color.LIGHT_GRAY);
+				}
+
+			}
+
+		});
+		t.start();
+	}
+
 	private static void GetName()
 	{
 		name = nameInput.getText().replaceAll("\\s+", "");
+
 		if (name.isEmpty() == false)
 		{
 			writemessage(name, socket);
 			frmClient.setTitle(name);
 			getNameScreen.setVisible(false);
 			clientScreen.setVisible(true);
+			writemessage(ClientRequests.getClientconnectionrequest(), socket);
 		} else
 		{
 			JOptionPane.showMessageDialog(frmClient, "please enter a valid name");
@@ -110,7 +143,8 @@ public class Client
 		// System.out.println(nameTagColourname);
 
 		// if there is something in the stream de-crypt it.
-		while ((message = MessageEncryption.decrypt(fromServer.readLine())) != null)
+		//while ((message = MessageEncryption.decrypt(fromServer.readLine())) != null)
+		while ((message = fromServer.readLine()) != null)
 		{
 
 			System.out.println(message);
@@ -122,35 +156,7 @@ public class Client
 
 			} else if (message.equalsIgnoreCase((ServerCommands.getServershutdownrequest()).replaceAll("\\s+", "")))
 			{
-				MessageUtils.appendToPane(msg_area, "Server has initiated a shutdown in " + count + "\n",
-						Color.LIGHT_GRAY);
-				progressBar.setVisible(true);
-				t = new Timer(1000, new ActionListener()
-				{
-
-					@Override
-					public void actionPerformed(ActionEvent e)
-					{
-						// TODO Auto-generated method stub
-
-						count--;
-						// decrease the value of the progress bar as the as the
-						// count is decreasing
-						progressBar.setValue((int) (count * (1.6)));
-						countDownLabel.setText("Loggin out in " + count);
-
-						if (count == 30)
-						{
-							MessageUtils.appendToPane(msg_area, "Logging out in 30 seconds", Color.LIGHT_GRAY);
-						} else if (count <= 10)
-						{
-							MessageUtils.appendToPane(msg_area, "Logging out in " + count + "\n", Color.LIGHT_GRAY);
-						}
-
-					}
-
-				});
-				t.start();
+				StartProgressBar();
 
 			} else if ((message.equalsIgnoreCase((ServerCommands.getServerkickrequest()).replaceAll("\\s+", ""))))
 			{
@@ -158,6 +164,18 @@ public class Client
 				JOptionPane.showMessageDialog(frmClient, "you have been removed from the server");
 				socket.close();
 				System.exit(0);
+
+			} else if ((message.equalsIgnoreCase(ServerCommands.getCloseinstantly().replaceAll("\\S+", ""))))
+			{
+				JOptionPane.showMessageDialog(frmClient, "Server has shutdown, you have been removed");
+				socket.close();
+				System.exit(0);
+
+			} else if (fromServer.readLine() == null)
+			{
+				socket.close();
+				JOptionPane.showMessageDialog(frmClient, "Server has closed, you will be removed in 1 min");
+				StartProgressBar();
 
 			} else
 			{
@@ -254,6 +272,9 @@ public class Client
 		countDownLabel.setBounds(29, 231, 217, 16);
 		clientScreen.add(countDownLabel);
 
+		/*
+		 * Used to collect the name from  the initial screen 
+		 */
 		nameSubmit.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -261,7 +282,10 @@ public class Client
 				GetName();
 			}
 		});
-
+		
+		/*
+		 * Used to collect the name from  the initial screen 
+		 */
 		nameInput.addKeyListener(new KeyAdapter()
 		{
 			@Override
@@ -273,13 +297,30 @@ public class Client
 				}
 			}
 		});
-
+		
+		/*
+		 * creates an exit request if the socket s open, if not close
+		 */
 		btnExit.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
+				try
+				{
+					if (socket.isClosed() == false)
+					{
+						writemessage(ClientRequests.getClientexitrequest(), socket);
+					} else
+					{
+						socket.close();
+						System.exit(0);
+					}
+				} catch (IOException e1)
+				{
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 
-				writemessage(ClientRequests.getClientexitrequest(), socket);
 			}
 		});
 
@@ -297,7 +338,6 @@ public class Client
 
 				} else if (now - lastClicked > threshold)
 				{
-					writemessage(ClientRequests.getClientconnectionrequest(), socket);
 					writemessage(msg_text.getText().trim(), socket);
 					msg_text.setText(null);
 					lastClicked = now;
