@@ -93,7 +93,9 @@ public class Server
 				socket = serverSocket.accept();
 				ServerThread rc = new ServerThread(socket);
 				clients.add(rc);
-				clients.get(clients.size() - 1).start();
+				rc.start();
+				// clients.get(clients.size() - 1).start()
+				;
 
 			}
 
@@ -120,7 +122,7 @@ public class Server
 	}
 
 	/*
-	 * used to remove the thread (client) from the clients list 
+	 * used to remove the thread (client) from the clients list
 	 */
 	private static void RemoveThread(String namee)
 	{
@@ -139,23 +141,31 @@ public class Server
 	 * gets the socket socket output stream for all client instance's and writs
 	 * the message
 	 */
-	private static void WriteToAllClients(String message)
+	private static synchronized void WriteToAllClients(String message)
 	{
+
 		for (int i = 0; i < clients.size(); i++)
 		{
 
-			PrintWriter writer;
-			try
-			{
-				writer = new PrintWriter(clients.get(i).socket.getOutputStream(), true);
-				//writer.println(MessageEncryption.encrypt(message));
-				writer.println(message);
-			} catch (IOException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			WriteToclient(message, clients.get(i).socket);
 
+		}
+	}
+
+	/*
+	 * write a specific message to a single client
+	 */
+	private static void WriteToclient(String message, Socket sockett)
+	{
+		try
+		{
+			PrintWriter writer = new PrintWriter(sockett.getOutputStream(), true);
+			writer.println(MessageEncryption.encrypt(message));
+			// writer.println(message);
+
+		} catch (Exception E)
+		{
+			E.printStackTrace();
 		}
 	}
 
@@ -171,6 +181,7 @@ public class Server
 			if (clients.get(i).name != null && clients.get(i).name.equalsIgnoreCase(name))
 			{
 				JOptionPane.showMessageDialog(frmServer, "The name already exists");
+				WriteToclient("", thread.socket);
 				WriteToclient(ServerCommands.getTerminateclient(), thread.socket);
 
 				return false;
@@ -197,9 +208,9 @@ public class Server
 			}
 		}
 	}
+
 	/*
-	 * used to display server-threads that are
-	 * now running. 
+	 * used to display server-threads that are now running.
 	 */
 	private static void DisplayClients()
 	{
@@ -208,32 +219,15 @@ public class Server
 
 		for (int i = 0; i < clients.size(); i++)
 		{
-
-			MessageUtils.appendToPane(clientList, clients.get(i).name + "\n", Color.RED);
+			
+				MessageUtils.appendToPane(clientList, clients.get(i).name + "\n", Color.RED);
+			
 
 		}
 
 		// MessageUtils.appendToPane(clientList, ClientNames.get(i) + "\n",
 		// Color.RED);
 
-	}
-
-	/*
-	 * write a specific message to a single client
-	 */
-	private static void WriteToclient(String message, Socket sockett)
-	{
-		try
-		{
-			PrintWriter writer = new PrintWriter(sockett.getOutputStream(), true);
-			//writer.println(MessageEncryption.encrypt(message));
-			writer.println(message);
-
-				
-		} catch (Exception E)
-		{
-			E.printStackTrace();
-		}
 	}
 
 	/*
@@ -378,11 +372,7 @@ public class Server
 					while ((msgin = fromClient.readLine()) != null)
 					{
 
-						if (msgin.equals(ClientRequests.getClientconnectionrequest()))
-						{
-
-						} else if (msgin
-								.equalsIgnoreCase((ClientRequests.getClientexitrequest()).replaceAll("\\s+", "")))
+						if (msgin.equalsIgnoreCase((ClientRequests.getClientexitrequest()).replaceAll("\\s+", "")))
 						{
 
 							WriteToclient(ServerCommands.getTerminateclient(), this.socket);

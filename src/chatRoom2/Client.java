@@ -80,6 +80,20 @@ public class Client
 		} catch (Exception e)
 		{
 			e.printStackTrace();
+			
+				
+				JOptionPane.showMessageDialog(frmClient, "Cannot establish connection to server, cliet will now exit ");
+				System.exit(0);
+				try
+				{
+					socket.close();
+				} catch (IOException e1)
+				{
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+			
 		}
 
 	}
@@ -141,13 +155,19 @@ public class Client
 		// "");
 		// Color nameTagColor = MessageUtils.checkcolor(nameTagColourname);
 		// System.out.println(nameTagColourname);
-
+		
 		// if there is something in the stream de-crypt it.
-		//while ((message = MessageEncryption.decrypt(fromServer.readLine())) != null)
-		while ((message = fromServer.readLine()) != null)
+		String UsrJoin = fromServer.readLine();
+		System.out.println(UsrJoin);
+		
+		MessageUtils.appendToPane(msg_area,MessageEncryption.decrypt(UsrJoin)+ "\n", Color.gray);
+		
+		
+		while ((message = MessageEncryption.decrypt(fromServer.readLine())) != null)
+		//while ((message = fromServer.readLine()) != null)
 		{
-
-			System.out.println(message);
+			
+			//System.out.println(message);
 			if (message.equalsIgnoreCase((ServerCommands.getTerminateclient()).replaceAll("\\s+", "")))
 			{
 
@@ -171,19 +191,14 @@ public class Client
 				socket.close();
 				System.exit(0);
 
-			} else if (fromServer.readLine() == null)
+			}  else
 			{
-				socket.close();
-				JOptionPane.showMessageDialog(frmClient, "Server has closed, you will be removed in 1 min");
-				StartProgressBar();
-
-			} else
-			{
-				// System.out.println(message);
+		
+				 //System.out.println(message);
 				MessageUtils.appendToPane(msg_area, message + "\n", Color.BLACK);
 			}
+		
 		}
-
 	}
 
 	private static void writemessage(String message, Socket sockett)
@@ -364,7 +379,7 @@ public class Client
 					} else if (now - lastClicked > threshold)
 					{
 
-						writemessage(ClientRequests.getClientconnectionrequest(), socket);
+						//writemessage(ClientRequests.getClientconnectionrequest(), socket);
 						writemessage(msg_text.getText().trim(), socket);
 						msg_text.setText(null);
 						lastClicked = now;
