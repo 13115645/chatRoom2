@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.Timer;
+import javax.swing.WindowConstants;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -249,16 +250,18 @@ public class Client
 	 */
 	private  void AntiSpamWriteMessage(){
 		long now = System.currentTimeMillis();
-		//if ((msg_text.getText().trim()).isEmpty())
-		//{
+		if ((msg_text.getText().trim()).isEmpty())
+		{
 
-		//} else //if (now - lastClicked > threshold)
-		//{
-			//msg_text.setText(null);
+		} else if (now - lastClicked > threshold)
+			{
+			
 			writemessage(msg_text.getText().trim(), socket);
+			System.out.println(msg_text.getText() + " from client ");
 			lastClicked = now;
+			msg_text.setText(null);
 
-		//}
+		}
 	}
 	/**
 	 * Initialize the contents of the frame.
@@ -269,6 +272,7 @@ public class Client
 		frmClient.setBounds(100, 100, 450, 300);
 		frmClient.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmClient.getContentPane().setLayout(new CardLayout(0, 0));
+		frmClient.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE); 
 
 		getNameScreen = new JPanel();
 		frmClient.getContentPane().add(getNameScreen, "name_414462615211513");

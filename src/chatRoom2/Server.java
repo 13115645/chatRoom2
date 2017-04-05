@@ -363,6 +363,7 @@ public class Server
 				// connecting
 				if (CheckName2(this, namee) && connectionrequest.equals(ClientRequests.getClientconnectionrequest()))
 				{
+					
 					// if true then set he class variable = to local variable.
 					name = namee;
 					ClientNames.add(name);
@@ -376,8 +377,9 @@ public class Server
 
 					while ((msgin = fromClient.readLine()) != null)
 					{
+						
 						msgin = MessageEncryption.decrypt(fromClient.readLine());
-
+						System.out.println(msgin+ " server checkpoint 1");
 						if (msgin.equalsIgnoreCase((ClientRequests.getClientexitrequest()).replaceAll("\\s+", "")))
 						{
 
