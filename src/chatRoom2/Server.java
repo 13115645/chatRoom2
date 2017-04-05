@@ -1,5 +1,11 @@
 package chatRoom2;
 
+/**
+ * 
+ * @author Yasiru Dahanayake
+ * 
+ */
+
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -29,23 +35,21 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JLabel;
 
-/**
- * 
- * @author Yasiru Dahanayake
- * 
- */
+
+
 public class Server
 {
 
 	private static JFrame frmServer;
-	private static JScrollPane scrollPane;
+	private JLabel lblNewLabel;
+	private static JScrollPane scrollPane,clientListScrollPane;
 	private static int count = 60;
 	static ServerSocket serverSocket;
 	static Socket socket;
 	private static final int PORT = 1234;
 	private static ArrayList<ServerThread> clients;
 	private static List<String> ClientNames = new ArrayList<String>();
-	private static JButton btnExit, instaClose;
+	private static JButton btnExit, instaClose, btnStopShutdown;
 	private static Timer t;
 	private static JTextField getClientName;
 	private JButton btnRemoveUsr;
@@ -103,22 +107,6 @@ public class Server
 		{
 			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * sets up the socket connection to client.
-	 */
-	private static void removeName(String namee)
-	{
-		for (int i = 0; i < clients.size(); i++)
-		{
-			if (namee.equals(clients.get(i).name))
-			{
-				clients.get(i).name = null;
-				// Arrays.fill(clients.get(i).name,null);
-			}
-		}
-
 	}
 
 	/*
@@ -219,9 +207,8 @@ public class Server
 
 		for (int i = 0; i < clients.size(); i++)
 		{
-			
-				MessageUtils.appendToPane(clientList, clients.get(i).name + "\n", Color.RED);
-			
+
+			MessageUtils.appendToPane(clientList, clients.get(i).name + "\n", Color.RED);
 
 		}
 
@@ -270,6 +257,7 @@ public class Server
 		WriteToAllClients(ServerCommands.getServershutdownrequest());
 		btnExit.setVisible(false);
 		instaClose.setVisible(true);
+		btnStopShutdown.setVisible(true);
 
 		t = new Timer(1000, new ActionListener()
 		{
@@ -318,6 +306,19 @@ public class Server
 
 	}
 
+	/*
+	 * Stops the server from shutting down and sends a command 
+	 * to reset the progress-bar and timer in client.
+	 */
+	private static void StopServerShutdown(){
+		t.stop();
+		count = 60;
+		WriteToAllClients(ServerCommands.getAbortshutdown());
+		btnExit.setVisible(true);
+		instaClose.setVisible(false);
+		btnStopShutdown.setVisible(false);
+		MessageUtils.appendToPane(msg_area2, "Shutdown Aborted \n", Color.GRAY);
+	}
 	/**
 	 * Create the application.
 	 */
@@ -326,6 +327,10 @@ public class Server
 		initialize();
 	}
 
+	/*
+	 * creates the inner class server thread which is used 
+	 * for multi client connection/handling
+	 */
 	private static class ServerThread extends Thread
 	{
 
@@ -350,9 +355,9 @@ public class Server
 				// CheckName(name);
 				BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-				namee = fromClient.readLine();
+				namee = MessageEncryption.decrypt(fromClient.readLine());
 
-				connectionrequest = fromClient.readLine();
+				connectionrequest = MessageEncryption.decrypt(fromClient.readLine());
 
 				// make sure the client is sending a connection request before
 				// connecting
@@ -371,6 +376,7 @@ public class Server
 
 					while ((msgin = fromClient.readLine()) != null)
 					{
+						msgin = MessageEncryption.decrypt(fromClient.readLine());
 
 						if (msgin.equalsIgnoreCase((ClientRequests.getClientexitrequest()).replaceAll("\\s+", "")))
 						{
@@ -429,35 +435,54 @@ public class Server
 		scrollPane.setBounds(232, 44, 354, 167);
 		panel.add(scrollPane);
 
-		btnExit = new JButton("Exit Count");
-		btnExit.setBounds(469, 247, 117, 29);
+		btnExit = new JButton("Start Shutdown");
+		btnExit.setBounds(456, 247, 130, 29);
 		panel.add(btnExit);
 
 		getClientName = new JTextField();
-		getClientName.setBounds(43, 223, 130, 26);
+		getClientName.setBounds(43, 247, 130, 26);
 		panel.add(getClientName);
 		getClientName.setColumns(10);
 
 		btnRemoveUsr = new JButton("Remove usr");
-		btnRemoveUsr.setBounds(53, 247, 117, 29);
+		btnRemoveUsr.setBounds(53, 279, 117, 29);
 		panel.add(btnRemoveUsr);
 
-		instaClose = new JButton("Kill All");
-		instaClose.setBounds(469, 247, 117, 29);
+		instaClose = new JButton("Shutdown Immediatley");
+		instaClose.setBounds(414, 279, 172, 29);
 		instaClose.setVisible(false);
 		panel.add(instaClose);
 
-		JLabel lblNewLabel = new JLabel("Users Connected");
+		lblNewLabel = new JLabel("Users Connected");
 		lblNewLabel.setBounds(37, 21, 115, 16);
 		panel.add(lblNewLabel);
 
-		JScrollPane clientListScrollPane = new JScrollPane();
+		clientListScrollPane = new JScrollPane();
 		clientListScrollPane.setBounds(33, 44, 140, 167);
 		panel.add(clientListScrollPane);
 
 		clientList = new JTextPane();
 		clientListScrollPane.setViewportView(clientList);
 
+		btnStopShutdown = new JButton("Stop Shutdown");
+		btnStopShutdown.setBounds(456, 247, 130, 29);
+		btnStopShutdown.setVisible(false);
+		panel.add(btnStopShutdown);
+
+		/*
+		 * clicking on the buttons stops the shutdown sequence
+		 */
+		btnStopShutdown.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				StopServerShutdown();
+			}
+		});
+		
+		/*
+		 * Immediately shuts down the server and all clients connected. 
+		 */
 		instaClose.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)

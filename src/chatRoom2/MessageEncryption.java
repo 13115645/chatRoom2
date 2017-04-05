@@ -1,5 +1,9 @@
 package chatRoom2;
-
+/**
+ * 
+ * @author Yasiru Dahanayake
+ * 
+ */
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -19,6 +23,9 @@ public class MessageEncryption
 	private static Cipher cipher;
 	private static Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
 
+	/*
+	 * Encrypts a given string using AES encryption
+	 */
 	static String encrypt(String text)
 	{
 		String encryptedString = null;
@@ -41,6 +48,9 @@ public class MessageEncryption
 
 	}
 
+	/*
+	 * De-crypts  a given string using AES
+	 */
 	static String decrypt(String encryptedString)
 	{
 		String decrypted = null;
@@ -49,7 +59,12 @@ public class MessageEncryption
 			cipher = Cipher.getInstance("AES");
 			Base64.Decoder decoder = Base64.getMimeDecoder();
 			cipher.init(Cipher.DECRYPT_MODE, aesKey);
-			decrypted = new String(cipher.doFinal(decoder.decode(encryptedString)), "UTF-8");
+			if (encryptedString.equals(null)){
+				
+			}else {
+				decrypted = new String(cipher.doFinal(decoder.decode(encryptedString)), "UTF-8");
+			}
+			
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
 				| InvalidKeyException | UnsupportedEncodingException e)
 		{

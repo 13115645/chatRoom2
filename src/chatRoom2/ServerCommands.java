@@ -1,5 +1,11 @@
 package chatRoom2;
 
+/**
+ * 
+ * @author Yasiru Dahanayake
+ * 
+ */
+
 public class ServerCommands
 {
 
@@ -9,6 +15,7 @@ public class ServerCommands
 	private static final String serverKickRequest = "kickedFromTheServer";
 	private static final String terminateClient = "terminate";
 	private static final String closeinstantly = "closeallalicents";
+	private static final String abortshutdown = "resettimerandprogressbar";
 
 	/*
 	 * If the server makes a shutdown request
@@ -42,6 +49,12 @@ public class ServerCommands
 		return closeinstantly;
 	}
 	
+	/*
+	 * resets the shutdown sequence in client
+	 */
+	public static String getAbortshutdown(){
+		return abortshutdown;
+	}
 	
 	
 
