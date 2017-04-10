@@ -35,14 +35,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JLabel;
 
-
-
 public class Server
 {
 
 	private static JFrame frmServer;
 	private JLabel lblNewLabel;
-	private static JScrollPane scrollPane,clientListScrollPane;
+	private static JScrollPane scrollPane, clientListScrollPane;
 	private static int count = 60;
 	static ServerSocket serverSocket;
 	static Socket socket;
@@ -114,12 +112,11 @@ public class Server
 	 */
 	private static void RemoveThread(String namee)
 	{
-		for (int i = 0; i < clients.size(); i++)
+		for (ServerThread client : clients)
 		{
-			if (namee.equals(clients.get(i).name))
+			if (namee.equals(client.name))
 			{
-				clients.remove(clients.get(i));
-				// Arrays.(clients.get(i),null);
+				clients.remove(client);
 			}
 		}
 
@@ -129,14 +126,11 @@ public class Server
 	 * gets the socket socket output stream for all client instance's and writs
 	 * the message
 	 */
-	private static synchronized void WriteToAllClients(String message)
+	private static void WriteToAllClients(String message)
 	{
-
-		for (int i = 0; i < clients.size(); i++)
+		for (ServerThread client : clients)
 		{
-
-			WriteToclient(message, clients.get(i).socket);
-
+			WriteToclient(message, client.socket);
 		}
 	}
 
@@ -164,16 +158,16 @@ public class Server
 	private static boolean CheckName2(ServerThread thread, String name)
 	{
 
-		for (int i = 0; i < clients.size(); i++)
+		for (ServerThread client : clients)
 		{
-			if (clients.get(i).name != null && clients.get(i).name.equalsIgnoreCase(name))
+			if (client.name != null && client.name.equalsIgnoreCase(name))
 			{
+
 				JOptionPane.showMessageDialog(frmServer, "The name already exists");
 				WriteToclient("", thread.socket);
 				WriteToclient(ServerCommands.getTerminateclient(), thread.socket);
 
 				return false;
-
 			}
 		}
 		return true;
@@ -185,14 +179,14 @@ public class Server
 	 */
 	private static void RemoveUserFromServer()
 	{
-		for (int i = 0; i < clients.size(); i++)
-		{
-			if (getClientName.getText().equalsIgnoreCase(clients.get(i).name))
-			{
-				WriteToclient(ServerCommands.getServerkickrequest(), clients.get(i).socket);
-				JOptionPane.showMessageDialog(frmServer, "User " + clients.get(i).name + " Removed");
-				DisplayClients();
 
+		for (ServerThread client : clients)
+		{
+			if (getClientName.getText().equalsIgnoreCase(client.name))
+			{
+				WriteToclient(ServerCommands.getServerkickrequest(), client.socket);
+				JOptionPane.showMessageDialog(frmServer, "User " + client.name + " Removed");
+				DisplayClients();
 			}
 		}
 	}
@@ -205,13 +199,10 @@ public class Server
 
 		clientList.setText(null);
 
-		for (int i = 0; i < clients.size(); i++)
+		for (ServerThread client : clients)
 		{
-
-			MessageUtils.appendToPane(clientList, clients.get(i).name + "\n", Color.RED);
-
+			MessageUtils.appendToPane(clientList, client.name + "\n", Color.RED);
 		}
-
 		// MessageUtils.appendToPane(clientList, ClientNames.get(i) + "\n",
 		// Color.RED);
 
@@ -275,12 +266,8 @@ public class Server
 					try
 					{
 
-						for (int i = 0; i < clients.size(); i++)
-						{
+						WriteToAllClients(ServerCommands.getTerminateclient());
 
-							WriteToclient(ServerCommands.getTerminateclient(), clients.get(i).socket);
-
-						}
 						// socket.close(); // closes the socket
 						System.exit(0); // closes the server window
 					} finally
@@ -307,10 +294,11 @@ public class Server
 	}
 
 	/*
-	 * Stops the server from shutting down and sends a command 
-	 * to reset the progress-bar and timer in client.
+	 * Stops the server from shutting down and sends a command to reset the
+	 * progress-bar and timer in client.
 	 */
-	private static void StopServerShutdown(){
+	private static void StopServerShutdown()
+	{
 		t.stop();
 		count = 60;
 		WriteToAllClients(ServerCommands.getAbortshutdown());
@@ -319,6 +307,7 @@ public class Server
 		btnStopShutdown.setVisible(false);
 		MessageUtils.appendToPane(msg_area2, "Shutdown Aborted \n", Color.GRAY);
 	}
+
 	/**
 	 * Create the application.
 	 */
@@ -328,8 +317,8 @@ public class Server
 	}
 
 	/*
-	 * creates the inner class server thread which is used 
-	 * for multi client connection/handling
+	 * creates the inner class server thread which is used for multi client
+	 * connection/handling
 	 */
 	private static class ServerThread extends Thread
 	{
@@ -354,7 +343,7 @@ public class Server
 
 				// CheckName(name);
 				BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
+				
 				namee = MessageEncryption.decrypt(fromClient.readLine());
 
 				connectionrequest = MessageEncryption.decrypt(fromClient.readLine());
@@ -363,7 +352,7 @@ public class Server
 				// connecting
 				if (CheckName2(this, namee) && connectionrequest.equals(ClientRequests.getClientconnectionrequest()))
 				{
-					
+
 					// if true then set he class variable = to local variable.
 					name = namee;
 					ClientNames.add(name);
@@ -375,11 +364,10 @@ public class Server
 					WriteToAllClients(name + " has now joined the room ");
 					MessageUtils.appendToPane(msg_area2, name + " is now connected.. \n", Color.LIGHT_GRAY);
 
-					while ((msgin = fromClient.readLine()) != null)
+					while ((msgin = MessageEncryption.decrypt(fromClient.readLine())) != null)
 					{
-						
-						msgin = MessageEncryption.decrypt(fromClient.readLine());
-						System.out.println(msgin+ " server checkpoint 1");
+
+						System.out.println(msgin + " server checkpoint 1");
 						if (msgin.equalsIgnoreCase((ClientRequests.getClientexitrequest()).replaceAll("\\s+", "")))
 						{
 
@@ -481,9 +469,9 @@ public class Server
 				StopServerShutdown();
 			}
 		});
-		
+
 		/*
-		 * Immediately shuts down the server and all clients connected. 
+		 * Immediately shuts down the server and all clients connected.
 		 */
 		instaClose.addActionListener(new ActionListener()
 		{

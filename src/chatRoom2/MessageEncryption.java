@@ -78,5 +78,8 @@ public class MessageEncryption
 	public static void main(String[] args)
 	{
 		System.out.println(decrypt("lBJ7ApPnWFJevkNNEzjUM34p7mZXpCiirK7cYndSsBE="));
+	
+	
+		
 	}
 }

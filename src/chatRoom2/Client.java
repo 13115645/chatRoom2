@@ -49,7 +49,7 @@ public class Client
 	private static int count = 60;
 	private static Timer t;
 	long lastClicked = System.currentTimeMillis();
-	final long threshold = 50; // 500msec = half second
+	final long threshold = 300; // 500msec = half second
 	private static Pattern p = Pattern.compile("[^A-Za-z0-9]");
 
 	/**
