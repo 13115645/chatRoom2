@@ -66,7 +66,7 @@ public class MessageEncryption
 			}
 			
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
-				| InvalidKeyException | UnsupportedEncodingException e)
+				| InvalidKeyException | UnsupportedEncodingException | NullPointerException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();

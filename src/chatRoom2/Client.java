@@ -49,7 +49,7 @@ public class Client
 	private static int count = 60;
 	private static Timer t;
 	long lastClicked = System.currentTimeMillis();
-	final long threshold = 300; // 500msec = half second
+	final long threshold = 500; // 500msec = half second
 	private static Pattern p = Pattern.compile("[^A-Za-z0-9]");
 
 	/**
@@ -104,6 +104,8 @@ public class Client
 	private static void StartProgressBar()
 	{
 		progressBar.setVisible(true);
+		MessageUtils.appendToPane(msg_area, "Server has initiates a shutdown \n", Color.LIGHT_GRAY);
+		MessageUtils.appendToPane(msg_area, "you will be logged out in "+ count + " seconds \n", Color.LIGHT_GRAY);
 		t = new Timer(1000, new ActionListener()
 		{
 
@@ -116,11 +118,10 @@ public class Client
 				// decrease the value of the progress bar as the as the
 				// count is decreasing
 				progressBar.setValue((int) (count * (1.6)));
-				countDownLabel.setText("Loggin out in " + count);
-
-				if (count == 30)
+				
+				if (count%10 == 0 && count >10)
 				{
-					MessageUtils.appendToPane(msg_area, "Logging out in 30 seconds", Color.LIGHT_GRAY);
+					MessageUtils.appendToPane(msg_area, "Logging out in " + count + "\n", Color.LIGHT_GRAY);
 				} else if (count <= 10)
 				{
 					MessageUtils.appendToPane(msg_area, "Logging out in " + count + "\n", Color.LIGHT_GRAY);
@@ -146,7 +147,7 @@ public class Client
 			frmClient.setTitle(name);
 			getNameScreen.setVisible(false);
 			clientScreen.setVisible(true);
-			writemessage(ClientRequests.getClientconnectionrequest(), socket);
+			writemessage(ClientRequestsCommands.getClientconnectionrequest(), socket);
 		} else
 		{
 			JOptionPane.showMessageDialog(frmClient, "please enter a valid name");
@@ -170,53 +171,55 @@ public class Client
 		// if there is something in the stream de-crypt it.
 		String UsrJoin = fromServer.readLine();
 		MessageUtils.appendToPane(msg_area, MessageEncryption.decrypt(UsrJoin) + "\n", Color.gray);
-
-		while ((message = MessageEncryption.decrypt(fromServer.readLine())) != null)
-		// while ((message = fromServer.readLine()) != null)
-		{
-
-			// System.out.println(message);
-			if (message.equals((ServerCommands.getTerminateclient())))
-			{
-				socket.getOutputStream().flush();
-				socket.close();
-				System.exit(0);
-
-			} else if (message.equals((ServerCommands.getServershutdownrequest())))
-			{
-				StartProgressBar();
-
-			} else if (message.equals((ServerCommands.getServerkickrequest())))
-			{
-
-				JOptionPane.showMessageDialog(frmClient, "you have been removed from the server");
-				socket.getOutputStream().flush();
-				socket.close();
-				System.exit(0);
-
-			} else if (message.equals(ServerCommands.getCloseinstantly()))
-			{
-				JOptionPane.showMessageDialog(frmClient, "Server has shutdown, you have been removed");
-				socket.getOutputStream().flush();
-				socket.close();
-				System.exit(0);
-
-			} else if (message.equals(ServerCommands.getAbortshutdown()))
-			{
-				MessageUtils.appendToPane(msg_area, "Server had Aborted shutdown \n", Color.LIGHT_GRAY);
-				progressBar.setVisible(false);
-				countDownLabel.setVisible(false);
-				count = 60;
-				t.stop();
-				
-			} else
+		
+			while ((message = MessageEncryption.decrypt(fromServer.readLine())) != null)
+			// while ((message = fromServer.readLine()) != null)
 			{
 
 				// System.out.println(message);
-				MessageUtils.appendToPane(msg_area, message + "\n", Color.BLACK);
-			}
 
-		}
+				if (message.equals((ServerCommands.getTerminateclient())))
+				{
+					socket.getOutputStream().flush();
+					socket.close();
+					System.exit(0);
+
+				} else if (message.equals((ServerCommands.getServershutdownrequest())))
+				{
+					StartProgressBar();
+
+				} else if (message.equals((ServerCommands.getServerkickrequest())))
+				{
+
+					JOptionPane.showMessageDialog(frmClient, "you have been removed from the server");
+					socket.getOutputStream().flush();
+					socket.close();
+					System.exit(0);
+
+				} else if (message.equals(ServerCommands.getCloseinstantly()))
+				{
+					JOptionPane.showMessageDialog(frmClient, "Server has shutdown, you have been removed");
+					socket.getOutputStream().flush();
+					socket.close();
+					System.exit(0);
+
+				} else if (message.equals(ServerCommands.getAbortshutdown()))
+				{
+					MessageUtils.appendToPane(msg_area, "Server had Aborted shutdown \n", Color.LIGHT_GRAY);
+					progressBar.setVisible(false);
+					countDownLabel.setVisible(false);
+					count = 60;
+					t.stop();
+
+				} else
+				{
+
+					// System.out.println(message);
+					MessageUtils.appendToPane(msg_area, message + "\n", Color.BLACK);
+				}
+
+			}
+		
 	}
 
 	/*
@@ -248,14 +251,15 @@ public class Client
 	/*
 	 * sets limilations so the user is not able to spam messages
 	 */
-	private  void AntiSpamWriteMessage(){
+	private void AntiSpamWriteMessage()
+	{
 		long now = System.currentTimeMillis();
 		if ((msg_text.getText().trim()).isEmpty())
 		{
 
 		} else if (now - lastClicked > threshold)
-			{
-			
+		{
+
 			writemessage(msg_text.getText().trim(), socket);
 			System.out.println(msg_text.getText() + " from client ");
 			lastClicked = now;
@@ -263,6 +267,7 @@ public class Client
 
 		}
 	}
+
 	/**
 	 * Initialize the contents of the frame.
 	 */
@@ -272,7 +277,8 @@ public class Client
 		frmClient.setBounds(100, 100, 450, 300);
 		frmClient.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmClient.getContentPane().setLayout(new CardLayout(0, 0));
-		frmClient.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE); 
+		frmClient.setResizable(false);
+		frmClient.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
 		getNameScreen = new JPanel();
 		frmClient.getContentPane().add(getNameScreen, "name_414462615211513");
@@ -362,7 +368,7 @@ public class Client
 				{
 					if (socket.isClosed() == false)
 					{
-						writemessage(ClientRequests.getClientexitrequest(), socket);
+						writemessage(ClientRequestsCommands.getClientexitrequest(), socket);
 					} else
 					{
 						socket.close();

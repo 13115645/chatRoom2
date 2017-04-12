@@ -5,7 +5,7 @@ package chatRoom2;
  * @author Yasiru Dahanayake
  * 
  */
-public class ClientRequests
+public class ClientRequestsCommands
 {
 
 	private static final String clientExitRequest = "closecurrentclient";

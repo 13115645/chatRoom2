@@ -112,28 +112,20 @@ public class Server
 	 */
 	private static void RemoveThread(String namee)
 	{
-		for (ServerThread client : clients)
-		{
-			if (namee.equals(client.name))
-			{
-				clients.remove(client);
-			}
-		}
+		
+		clients.removeIf(client -> client.name.equals(namee));
 
 	}
 
+	
 	/**
 	 * gets the socket socket output stream for all client instance's and writs
 	 * the message
 	 */
 	private static void WriteToAllClients(String message)
 	{
-		for (ServerThread client : clients)
-		{
-			WriteToclient(message, client.socket);
-		}
+		clients.forEach(value -> WriteToclient(message,value.socket));
 	}
-
 	/*
 	 * write a specific message to a single client
 	 */
@@ -199,10 +191,7 @@ public class Server
 
 		clientList.setText(null);
 
-		for (ServerThread client : clients)
-		{
-			MessageUtils.appendToPane(clientList, client.name + "\n", Color.RED);
-		}
+		clients.forEach(client -> MessageUtils.appendToPane(clientList, client.name + "\n", Color.RED));
 		// MessageUtils.appendToPane(clientList, ClientNames.get(i) + "\n",
 		// Color.RED);
 
@@ -350,7 +339,7 @@ public class Server
 
 				// make sure the client is sending a connection request before
 				// connecting
-				if (CheckName2(this, namee) && connectionrequest.equals(ClientRequests.getClientconnectionrequest()))
+				if (CheckName2(this, namee) && connectionrequest.equals(ClientRequestsCommands.getClientconnectionrequest()))
 				{
 
 					// if true then set he class variable = to local variable.
@@ -368,7 +357,7 @@ public class Server
 					{
 
 						System.out.println(msgin + " server checkpoint 1");
-						if (msgin.equalsIgnoreCase((ClientRequests.getClientexitrequest()).replaceAll("\\s+", "")))
+						if (msgin.equalsIgnoreCase((ClientRequestsCommands.getClientexitrequest()).replaceAll("\\s+", "")))
 						{
 
 							WriteToclient(ServerCommands.getTerminateclient(), this.socket);
@@ -413,6 +402,7 @@ public class Server
 		frmServer = new JFrame();
 		frmServer.setTitle("SERVER");
 		frmServer.setBounds(100, 100, 607, 378);
+		frmServer.setResizable(false);
 		frmServer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmServer.getContentPane().setLayout(new CardLayout(0, 0));
 

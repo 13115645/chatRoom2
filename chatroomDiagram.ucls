@@ -21,7 +21,7 @@
   </class>  
   <class id="3" language="java" name="chatRoom2.MessageUtils" project="chatRoom2" 
     file="/chatRoom2/src/chatRoom2/MessageUtils.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="155" width="271" x="656" y="-92"/>    
+    <position height="-1" width="-1" x="764" y="-65"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -30,21 +30,43 @@
   </class>  
   <class id="4" language="java" name="chatRoom2.Server.ServerThread" project="chatRoom2" 
     file="/chatRoom2/src/chatRoom2/Server.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="155" width="146" x="101" y="481"/>    
+    <position height="-1" width="-1" x="303" y="630"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <nesting id="5">    
+  <class id="5" language="java" name="chatRoom2.MessageEncryption" project="chatRoom2" 
+    file="/chatRoom2/src/chatRoom2/MessageEncryption.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="709" y="115"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="6" language="java" name="chatRoom2.ServerCommands" project="chatRoom2" 
+    file="/chatRoom2/src/chatRoom2/ServerCommands.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="1023" y="16"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <nesting id="7">    
     <end type="SOURCE" refId="1"/>    
     <end type="TARGET" refId="4"/>  
   </nesting>  
-  <association id="6">    
+  <association id="8">    
     <end type="SOURCE" refId="1" navigable="false">      
-      <attribute id="7" name="clients"/>      
-      <multiplicity id="8" minimum="0" maximum="2147483647"/>    
+      <attribute id="9" name="clients">        
+        <position height="0" width="0" x="129" y="72"/>      
+      </attribute>      
+      <multiplicity id="10" minimum="0" maximum="2147483647">        
+        <position height="0" width="0" x="129" y="72"/>      
+      </multiplicity>    
     </end>    
     <end type="TARGET" refId="4" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
