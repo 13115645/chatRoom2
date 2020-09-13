@@ -1,4 +1,4 @@
-package chatRoom2;
+package main.java.com.ydprojects.utils;
 /**
  * 
  * @author Yasiru Dahanayake
@@ -26,7 +26,7 @@ public class MessageEncryption
 	/*
 	 * Encrypts a given string using AES encryption
 	 */
-	static String encrypt(String text)
+	public static String encrypt(String text)
 	{
 		String encryptedString = null;
 
@@ -51,7 +51,7 @@ public class MessageEncryption
 	/*
 	 * De-crypts  a given string using AES
 	 */
-	static String decrypt(String encryptedString)
+	public static String decrypt(String encryptedString)
 	{
 		String decrypted = null;
 		try

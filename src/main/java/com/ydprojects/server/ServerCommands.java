@@ -1,4 +1,4 @@
-package chatRoom2;
+package main.java.com.ydprojects.server;
 
 /**
  * 

@@ -1,4 +1,4 @@
-package chatRoom2;
+package main.java.com.ydprojects.client;
 
 /**
  * 
@@ -15,7 +15,7 @@ public class ClientRequestsCommands
 	 * Used to connect to the server, if not server does not
 	 * connect to the client
 	 */
-	public static String getClientconnectionrequest()
+	public static String getClientConnectionRequest()
 	{
 		return clientConnectionRequest;
 	}
@@ -23,7 +23,7 @@ public class ClientRequestsCommands
 	/*
 	 * If the client makes a request to exit the server.
 	 */
-	public static String getClientexitrequest()
+	public static String getClientExitRequest()
 	{
 		return clientExitRequest;
 	}

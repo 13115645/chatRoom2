@@ -1,8 +1,12 @@
-package chatRoom2;
+package main.java.com.ydprojects.client;
 
 /**
  * @author Yasiru Dahanayake
  */
+
+import main.java.com.ydprojects.server.ServerCommands;
+import main.java.com.ydprojects.utils.MessageEncryption;
+import main.java.com.ydprojects.utils.MessageUtils;
 
 import java.awt.EventQueue;
 import javax.swing.JFrame;
@@ -76,7 +80,7 @@ public class Client
 		try
 		{
 			socket = new Socket("127.0.0.1", 1234);
-			ReadFromServer(socket);
+			readFromServer(socket);
 
 		} catch (Exception e)
 		{
@@ -101,7 +105,7 @@ public class Client
 	 * displays the progress-bar, which ticks down according to the timer does
 	 * specific functions once the count get to a certain number;
 	 */
-	private static void StartProgressBar()
+	private static void startProgressBar()
 	{
 		progressBar.setVisible(true);
 		MessageUtils.appendToPane(msg_area, "Server has initiates a shutdown \n", Color.LIGHT_GRAY);
@@ -136,18 +140,18 @@ public class Client
 	/*
 	 * Takes the name and validates it, according to set validation
 	 */
-	private static void GetName()
+	private static void getName()
 	{
 		name = nameInput.getText().replaceAll("\\s+", "");
 		Matcher m = p.matcher(name);
 
 		if ((name.isEmpty() == false) && (m.find() == false))
 		{
-			writemessage(name, socket);
+			writeMessage(name, socket);
 			frmClient.setTitle(name);
 			getNameScreen.setVisible(false);
 			clientScreen.setVisible(true);
-			writemessage(ClientRequestsCommands.getClientconnectionrequest(), socket);
+			writeMessage(ClientRequestsCommands.getClientConnectionRequest(), socket);
 		} else
 		{
 			JOptionPane.showMessageDialog(frmClient, "please enter a valid name");
@@ -158,7 +162,7 @@ public class Client
 	 * reads from the socket Input stream carries out tasks depending on what is
 	 * send by the server
 	 */
-	private static void ReadFromServer(Socket sockett) throws IOException
+	private static void readFromServer(Socket sockett) throws IOException
 	{
 		String message = null;
 
@@ -186,7 +190,7 @@ public class Client
 
 				} else if (message.equals((ServerCommands.getServershutdownrequest())))
 				{
-					StartProgressBar();
+					startProgressBar();
 
 				} else if (message.equals((ServerCommands.getServerkickrequest())))
 				{
@@ -225,7 +229,7 @@ public class Client
 	/*
 	 * writes a an encrypted string to server output stream
 	 */
-	private static void writemessage(String message, Socket sockett)
+	private static void writeMessage(String message, Socket sockett)
 	{
 		try
 		{
@@ -251,7 +255,7 @@ public class Client
 	/*
 	 * sets limilations so the user is not able to spam messages
 	 */
-	private void AntiSpamWriteMessage()
+	private void antiSpamWriteMessage()
 	{
 		long now = System.currentTimeMillis();
 		if ((msg_text.getText().trim()).isEmpty())
@@ -260,7 +264,7 @@ public class Client
 		} else if (now - lastClicked > threshold)
 		{
 
-			writemessage(msg_text.getText().trim(), socket);
+			writeMessage(msg_text.getText().trim(), socket);
 			System.out.println(msg_text.getText() + " from client ");
 			lastClicked = now;
 			msg_text.setText(null);
@@ -338,7 +342,7 @@ public class Client
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				GetName();
+				getName();
 			}
 		});
 
@@ -352,7 +356,7 @@ public class Client
 			{
 				if (e.getKeyCode() == KeyEvent.VK_ENTER)
 				{
-					GetName();
+					getName();
 				}
 			}
 		});
@@ -368,7 +372,7 @@ public class Client
 				{
 					if (socket.isClosed() == false)
 					{
-						writemessage(ClientRequestsCommands.getClientexitrequest(), socket);
+						writeMessage(ClientRequestsCommands.getClientexitrequest(), socket);
 					} else
 					{
 						socket.close();
@@ -391,7 +395,7 @@ public class Client
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				AntiSpamWriteMessage();
+				antiSpamWriteMessage();
 			}
 		});
 
@@ -406,7 +410,7 @@ public class Client
 			{
 				if (e.getKeyCode() == KeyEvent.VK_ENTER)
 				{
-					AntiSpamWriteMessage();
+					antiSpamWriteMessage();
 				}
 			}
 		});

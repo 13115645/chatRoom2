@@ -1,4 +1,4 @@
-package chatRoom2;
+package main.java.com.ydprojects.utils;
 
 /**
  * 
@@ -28,7 +28,7 @@ public class MessageUtils
 	 * 
 	 * 
 	 */
-	static void appendToPane(JTextPane tp, String msg, Color c)
+	public static void appendToPane(JTextPane tp, String msg, Color c)
 	{
 
 		StyleContext sc = StyleContext.getDefaultStyleContext();
@@ -47,7 +47,7 @@ public class MessageUtils
 	/*
 	 * generates a random colour
 	 */
-	static Color randomColor()
+	public static Color randomColor()
 	{
 
 		Collections.shuffle(MessageUtils.Colours);

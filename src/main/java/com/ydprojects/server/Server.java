@@ -1,10 +1,14 @@
-package chatRoom2;
+package main.java.com.ydprojects.server;
 
 /**
  * 
  * @author Yasiru Dahanayake
  * 
  */
+
+import main.java.com.ydprojects.client.ClientRequestsCommands;
+import main.java.com.ydprojects.utils.MessageEncryption;
+import main.java.com.ydprojects.utils.MessageUtils;
 
 import java.awt.EventQueue;
 import javax.swing.JFrame;
@@ -22,7 +26,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -77,7 +80,7 @@ public class Server
 		});
 		clients = new ArrayList<ServerThread>();
 
-		SetUpClients();
+		setUpClients();
 
 	}
 
@@ -85,7 +88,7 @@ public class Server
 	 * sets up the the socket for client and adds the individual client to the
 	 * ServerThread List
 	 */
-	private static void SetUpClients()
+	private static void setUpClients()
 	{
 		try
 		{
@@ -110,10 +113,10 @@ public class Server
 	/*
 	 * used to remove the thread (client) from the clients list
 	 */
-	private static void RemoveThread(String namee)
+	private static void removeThread(String clientName)
 	{
 		
-		clients.removeIf(client -> client.name.equals(namee));
+		clients.removeIf(client -> client.name.equals(clientName));
 
 	}
 
@@ -122,18 +125,18 @@ public class Server
 	 * gets the socket socket output stream for all client instance's and writs
 	 * the message
 	 */
-	private static void WriteToAllClients(String message)
+	private static void writeToAllClients(String message)
 	{
-		clients.forEach(value -> WriteToclient(message,value.socket));
+		clients.forEach(value -> writeToClient(message,value.socket));
 	}
 	/*
 	 * write a specific message to a single client
 	 */
-	private static void WriteToclient(String message, Socket sockett)
+	private static void writeToClient(String message, Socket socket)
 	{
 		try
 		{
-			PrintWriter writer = new PrintWriter(sockett.getOutputStream(), true);
+			PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
 			writer.println(MessageEncryption.encrypt(message));
 			// writer.println(message);
 
@@ -147,7 +150,7 @@ public class Server
 	 * Compares the the name of the current thread with others if exists
 	 * terminates the current thread (close client instance)
 	 */
-	private static boolean CheckName2(ServerThread thread, String name)
+	private static boolean checkName2(ServerThread thread, String name)
 	{
 
 		for (ServerThread client : clients)
@@ -156,8 +159,8 @@ public class Server
 			{
 
 				JOptionPane.showMessageDialog(frmServer, "The name already exists");
-				WriteToclient("", thread.socket);
-				WriteToclient(ServerCommands.getTerminateclient(), thread.socket);
+				writeToClient("", thread.socket);
+				writeToClient(ServerCommands.getTerminateclient(), thread.socket);
 
 				return false;
 			}
@@ -169,16 +172,16 @@ public class Server
 	 * Similar to close client connection, but also displays additional text on
 	 * the client side.
 	 */
-	private static void RemoveUserFromServer()
+	private static void removeUserFromServer()
 	{
 
 		for (ServerThread client : clients)
 		{
 			if (getClientName.getText().equalsIgnoreCase(client.name))
 			{
-				WriteToclient(ServerCommands.getServerkickrequest(), client.socket);
+				writeToClient(ServerCommands.getServerkickrequest(), client.socket);
 				JOptionPane.showMessageDialog(frmServer, "User " + client.name + " Removed");
-				DisplayClients();
+				displayClients();
 			}
 		}
 	}
@@ -186,7 +189,7 @@ public class Server
 	/*
 	 * used to display server-threads that are now running.
 	 */
-	private static void DisplayClients()
+	private static void displayClients()
 	{
 
 		clientList.setText(null);
@@ -211,9 +214,9 @@ public class Server
 	 * If the initial server shutdown has started the user would have the option
 	 * to override the count-down.
 	 */
-	private static void ImmediateServerShutdown()
+	private static void immediateServerShutdown()
 	{
-		WriteToAllClients(ServerCommands.getTerminateclient());
+		writeToAllClients(ServerCommands.getTerminateclient());
 		System.exit(0); // closes the server window
 		if (socket != null)
 		{
@@ -231,10 +234,10 @@ public class Server
 	/*
 	 * starts a count-down and when count reaches 0 closes the server
 	 */
-	private static void CloseServer()
+	private static void closeServer()
 	{
 		// starts the timer for the progressbar
-		WriteToAllClients(ServerCommands.getServershutdownrequest());
+		writeToAllClients(ServerCommands.getServershutdownrequest());
 		btnExit.setVisible(false);
 		instaClose.setVisible(true);
 		btnStopShutdown.setVisible(true);
@@ -255,7 +258,7 @@ public class Server
 					try
 					{
 
-						WriteToAllClients(ServerCommands.getTerminateclient());
+						writeToAllClients(ServerCommands.getTerminateclient());
 
 						// socket.close(); // closes the socket
 						System.exit(0); // closes the server window
@@ -286,11 +289,11 @@ public class Server
 	 * Stops the server from shutting down and sends a command to reset the
 	 * progress-bar and timer in client.
 	 */
-	private static void StopServerShutdown()
+	private static void stopServerShutdown()
 	{
 		t.stop();
 		count = 60;
-		WriteToAllClients(ServerCommands.getAbortshutdown());
+		writeToAllClients(ServerCommands.getAbortshutdown());
 		btnExit.setVisible(true);
 		instaClose.setVisible(false);
 		btnStopShutdown.setVisible(false);
@@ -339,18 +342,18 @@ public class Server
 
 				// make sure the client is sending a connection request before
 				// connecting
-				if (CheckName2(this, namee) && connectionrequest.equals(ClientRequestsCommands.getClientconnectionrequest()))
+				if (checkName2(this, namee) && connectionrequest.equals(ClientRequestsCommands.getClientConnectionRequest()))
 				{
 
 					// if true then set he class variable = to local variable.
 					name = namee;
 					ClientNames.add(name);
 					// SqlConnection.AddPeople(namee);
-					DisplayClients();
+					displayClients();
 
 					nameColor = MessageUtils.randomColor();
 					// WriteToAllClients(nameColor.toString());
-					WriteToAllClients(name + " has now joined the room ");
+					writeToAllClients(name + " has now joined the room ");
 					MessageUtils.appendToPane(msg_area2, name + " is now connected.. \n", Color.LIGHT_GRAY);
 
 					while ((msgin = MessageEncryption.decrypt(fromClient.readLine())) != null)
@@ -360,7 +363,7 @@ public class Server
 						if (msgin.equalsIgnoreCase((ClientRequestsCommands.getClientexitrequest()).replaceAll("\\s+", "")))
 						{
 
-							WriteToclient(ServerCommands.getTerminateclient(), this.socket);
+							writeToClient(ServerCommands.getTerminateclient(), this.socket);
 
 						} else
 						{
@@ -372,15 +375,15 @@ public class Server
 							// doc.insertString(0, (getTime() + ": " + name + ":
 							// " + msgin + "\n"), null);
 							msgout = msgin;
-							WriteToAllClients((getTime() + ": " + name + ": " + msgout));
+							writeToAllClients((getTime() + ": " + name + ": " + msgout));
 						}
 
 					}
 
 					MessageUtils.appendToPane(msg_area2, name + " has left the room \n", Color.LIGHT_GRAY);
-					WriteToAllClients(name + " has disconnected \n");
-					RemoveThread(name);
-					DisplayClients();
+					writeToAllClients(name + " has disconnected \n");
+					removeThread(name);
+					displayClients();
 
 					// socket.close();
 
@@ -456,7 +459,7 @@ public class Server
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				StopServerShutdown();
+				stopServerShutdown();
 			}
 		});
 
@@ -467,7 +470,7 @@ public class Server
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				ImmediateServerShutdown();
+				immediateServerShutdown();
 			}
 		});
 
@@ -482,7 +485,7 @@ public class Server
 				if (e.getKeyCode() == KeyEvent.VK_ENTER)
 				{
 
-					RemoveUserFromServer();
+					removeUserFromServer();
 				}
 			}
 		});
@@ -495,7 +498,7 @@ public class Server
 			public void actionPerformed(ActionEvent e)
 			{
 
-				RemoveUserFromServer();
+				removeUserFromServer();
 
 			}
 		});
@@ -508,7 +511,7 @@ public class Server
 			public void actionPerformed(ActionEvent e)
 			{
 
-				CloseServer();
+				closeServer();
 
 			}
 		});
