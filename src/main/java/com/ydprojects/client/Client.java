@@ -4,6 +4,7 @@ package main.java.com.ydprojects.client;
  * @author Yasiru Dahanayake
  */
 
+import main.java.com.ydprojects.message.Message;
 import main.java.com.ydprojects.server.ServerCommands;
 import main.java.com.ydprojects.utils.MessageEncryption;
 import main.java.com.ydprojects.utils.MessageUtils;
@@ -19,10 +20,7 @@ import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
@@ -55,8 +53,10 @@ public class Client
 	long lastClicked = System.currentTimeMillis();
 	final long threshold = 500; // 500msec = half second
 	private static Pattern p = Pattern.compile("[^A-Za-z0-9]");
+	private static ObjectOutputStream objectOutputStream;
+	private static ObjectInputStream objectInputStream;
 
-	/**
+    /**
 	 * Launch the application.
 	 */
 	public static void main(String[] args)
@@ -86,14 +86,13 @@ public class Client
 		{
 			e.printStackTrace();
 
-			JOptionPane.showMessageDialog(frmClient, "Cannot establish connection to server, cliet will now exit ");
+			JOptionPane.showMessageDialog(frmClient, "Cannot establish a connection to the server, client will now exit ");
 			System.exit(0);
 			try
 			{
 				socket.close();
 			} catch (IOException e1)
 			{
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 
@@ -105,7 +104,7 @@ public class Client
 	 * displays the progress-bar, which ticks down according to the timer does
 	 * specific functions once the count get to a certain number;
 	 */
-	private static void startProgressBar()
+	private static void startShutdownProgressBar()
 	{
 		progressBar.setVisible(true);
 		MessageUtils.appendToPane(msg_area, "Server has initiates a shutdown \n", Color.LIGHT_GRAY);
@@ -116,13 +115,12 @@ public class Client
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				// TODO Auto-generated method stub
 
 				count--;
 				// decrease the value of the progress bar as the as the
 				// count is decreasing
 				progressBar.setValue((int) (count * (1.6)));
-				
+
 				if (count%10 == 0 && count >10)
 				{
 					MessageUtils.appendToPane(msg_area, "Logging out in " + count + "\n", Color.LIGHT_GRAY);
@@ -145,7 +143,7 @@ public class Client
 		name = nameInput.getText().replaceAll("\\s+", "");
 		Matcher m = p.matcher(name);
 
-		if ((name.isEmpty() == false) && (m.find() == false))
+		if ((!name.isEmpty()) && (!m.find()))
 		{
 			writeMessage(name, socket);
 			frmClient.setTitle(name);
@@ -162,21 +160,22 @@ public class Client
 	 * reads from the socket Input stream carries out tasks depending on what is
 	 * send by the server
 	 */
-	private static void readFromServer(Socket sockett) throws IOException
-	{
+	private static void readFromServer(Socket sockett) throws IOException, ClassNotFoundException {
 		String message = null;
 
-		BufferedReader fromServer = new BufferedReader(new InputStreamReader(sockett.getInputStream()));
-		// String nameTagColourname = fromServer.readLine().replaceAll("\\s+",
-		// "");
-		// Color nameTagColor = MessageUtils.checkcolor(nameTagColourname);
-		// System.out.println(nameTagColourname);
+		if(objectInputStream == null) {
+		    objectInputStream = new ObjectInputStream(sockett.getInputStream());
+        }
+		Message messageObject = (Message)objectInputStream.readObject();
+
+		//BufferedReader fromServer = new BufferedReader(new InputStreamReader(sockett.getInputStream()));
+
 
 		// if there is something in the stream de-crypt it.
-		String UsrJoin = fromServer.readLine();
+		String UsrJoin = messageObject.getMessage();
 		MessageUtils.appendToPane(msg_area, MessageEncryption.decrypt(UsrJoin) + "\n", Color.gray);
-		
-			while ((message = MessageEncryption.decrypt(fromServer.readLine())) != null)
+
+			while ((message = MessageEncryption.decrypt(((Message) objectInputStream.readObject()).getMessage())) != null)
 			// while ((message = fromServer.readLine()) != null)
 			{
 
@@ -190,7 +189,7 @@ public class Client
 
 				} else if (message.equals((ServerCommands.getServershutdownrequest())))
 				{
-					startProgressBar();
+					startShutdownProgressBar();
 
 				} else if (message.equals((ServerCommands.getServerkickrequest())))
 				{
@@ -223,7 +222,7 @@ public class Client
 				}
 
 			}
-		
+
 	}
 
 	/*
@@ -233,9 +232,16 @@ public class Client
 	{
 		try
 		{
-			PrintWriter writer = new PrintWriter(sockett.getOutputStream(), true);
+		    if(objectOutputStream==null) {
+                objectOutputStream = new ObjectOutputStream(sockett.getOutputStream());
+            }
+			objectOutputStream.writeObject(new Message(message));
+			objectOutputStream.flush();
+			objectOutputStream.reset();
 
-			writer.println(MessageEncryption.encrypt(message));
+			//PrintWriter writer = new PrintWriter(sockett.getOutputStream(), true);
+
+			//writer.println(MessageEncryption.encrypt(message));
 
 		} catch (Exception E)
 		{
@@ -253,7 +259,7 @@ public class Client
 	}
 
 	/*
-	 * sets limilations so the user is not able to spam messages
+	 * sets limitations so the user is not able to spam messages
 	 */
 	private void antiSpamWriteMessage()
 	{
@@ -370,9 +376,9 @@ public class Client
 			{
 				try
 				{
-					if (socket.isClosed() == false)
+					if (!socket.isClosed())
 					{
-						writeMessage(ClientRequestsCommands.getClientexitrequest(), socket);
+						writeMessage(ClientRequestsCommands.getClientExitRequest(), socket);
 					} else
 					{
 						socket.close();
@@ -380,7 +386,6 @@ public class Client
 					}
 				} catch (IOException e1)
 				{
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 
@@ -389,7 +394,7 @@ public class Client
 
 		/**
 		 * send message by clicking button.
-		 * 
+		 *
 		 */
 		msg_send.addActionListener(new ActionListener()
 		{
