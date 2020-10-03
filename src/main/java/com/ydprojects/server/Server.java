@@ -1,4 +1,4 @@
-package main.java.com.ydprojects.server;
+package com.ydprojects.server;
 
 /**
  * 
@@ -6,9 +6,9 @@ package main.java.com.ydprojects.server;
  * 
  */
 
-import main.java.com.ydprojects.client.ClientRequestsCommands;
-import main.java.com.ydprojects.utils.MessageEncryption;
-import main.java.com.ydprojects.utils.MessageUtils;
+import com.ydprojects.message.Message;
+import com.ydprojects.utils.MessageEncryption;
+import com.ydprojects.utils.MessageUtils;
 
 import java.awt.EventQueue;
 import javax.swing.JFrame;
@@ -18,10 +18,7 @@ import java.awt.Color;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.Timer;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
@@ -40,7 +37,6 @@ import javax.swing.JLabel;
 
 public class Server
 {
-
 	private static JFrame frmServer;
 	private JLabel lblNewLabel;
 	private static JScrollPane scrollPane, clientListScrollPane;
@@ -50,7 +46,7 @@ public class Server
 	private static final int PORT = 1234;
 	private static ArrayList<ServerThread> clients;
 	private static List<String> ClientNames = new ArrayList<String>();
-	private static JButton btnExit, instaClose, btnStopShutdown;
+	private static JButton btnExit, instantClose, btnStopShutdown;
 	private static Timer t;
 	private static JTextField getClientName;
 	private JButton btnRemoveUsr;
@@ -127,30 +123,21 @@ public class Server
 	 */
 	private static void writeToAllClients(String message)
 	{
-		clients.forEach(value -> writeToClient(message,value.socket));
+		clients.forEach(client -> client.writeToClient(new Message(message)));
 	}
+
 	/*
 	 * write a specific message to a single client
 	 */
-	private static void writeToClient(String message, Socket socket)
-	{
-		try
-		{
-			PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-			writer.println(MessageEncryption.encrypt(message));
-			// writer.println(message);
-
-		} catch (Exception E)
-		{
-			E.printStackTrace();
-		}
+	private static void writeToAllClients(Message message) {
+		clients.forEach(client -> client.writeToClient(message));
 	}
 
 	/*
 	 * Compares the the name of the current thread with others if exists
 	 * terminates the current thread (close client instance)
 	 */
-	private static boolean checkName2(ServerThread thread, String name)
+	private static boolean checkIfNameAlreadyExist(ServerThread thread, String name)
 	{
 
 		for (ServerThread client : clients)
@@ -159,8 +146,8 @@ public class Server
 			{
 
 				JOptionPane.showMessageDialog(frmServer, "The name already exists");
-				writeToClient("", thread.socket);
-				writeToClient(ServerCommands.getTerminateclient(), thread.socket);
+				client.writeToClient(new Message(""));
+				client.writeToClient(new Message(ServerCommands.TERMINATE_CLIENT));
 
 				return false;
 			}
@@ -174,12 +161,11 @@ public class Server
 	 */
 	private static void removeUserFromServer()
 	{
-
 		for (ServerThread client : clients)
 		{
 			if (getClientName.getText().equalsIgnoreCase(client.name))
 			{
-				writeToClient(ServerCommands.getServerkickrequest(), client.socket);
+				client.writeToClient(new Message(ServerCommands.SERVER_KICK_REQUEST));
 				JOptionPane.showMessageDialog(frmServer, "User " + client.name + " Removed");
 				displayClients();
 			}
@@ -216,7 +202,7 @@ public class Server
 	 */
 	private static void immediateServerShutdown()
 	{
-		writeToAllClients(ServerCommands.getTerminateclient());
+		writeToAllClients(new Message(ServerCommands.TERMINATE_CLIENT));
 		System.exit(0); // closes the server window
 		if (socket != null)
 		{
@@ -225,7 +211,6 @@ public class Server
 				socket.close();
 			} catch (IOException e1)
 			{
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
@@ -237,9 +222,9 @@ public class Server
 	private static void closeServer()
 	{
 		// starts the timer for the progressbar
-		writeToAllClients(ServerCommands.getServershutdownrequest());
+		writeToAllClients(new Message(ServerCommands.SERVER_SHUTDOWN_REQUEST));
 		btnExit.setVisible(false);
-		instaClose.setVisible(true);
+		instantClose.setVisible(true);
 		btnStopShutdown.setVisible(true);
 
 		t = new Timer(1000, new ActionListener()
@@ -247,7 +232,6 @@ public class Server
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				// TODO Auto-generated method stub
 
 				count--;
 
@@ -258,7 +242,7 @@ public class Server
 					try
 					{
 
-						writeToAllClients(ServerCommands.getTerminateclient());
+						writeToAllClients(new Message(ServerCommands.TERMINATE_CLIENT));
 
 						// socket.close(); // closes the socket
 						System.exit(0); // closes the server window
@@ -271,7 +255,6 @@ public class Server
 								socket.close();
 							} catch (IOException e1)
 							{
-								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
 						}
@@ -293,12 +276,13 @@ public class Server
 	{
 		t.stop();
 		count = 60;
-		writeToAllClients(ServerCommands.getAbortshutdown());
+		writeToAllClients(new Message(ServerCommands.ABORT_SHUTDOWN));
 		btnExit.setVisible(true);
-		instaClose.setVisible(false);
+		instantClose.setVisible(false);
 		btnStopShutdown.setVisible(false);
 		MessageUtils.appendToPane(msg_area2, "Shutdown Aborted \n", Color.GRAY);
 	}
+
 
 	/**
 	 * Create the application.
@@ -318,6 +302,8 @@ public class Server
 		Socket socket;
 		String name = null;
 		Color nameColor;
+		ObjectOutputStream objectOutputStream;
+
 
 		ServerThread(Socket socket)
 		{
@@ -328,53 +314,46 @@ public class Server
 		{
 			try
 			{
-				String msgin = null;
-				String msgout = null;
-				String namee = null;
-				String connectionrequest = null;
+				Message msgin = null;
+				String message = "";
+				String msgout = "";
+				String namee = "";
 
-				// CheckName(name);
-				BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				
-				namee = MessageEncryption.decrypt(fromClient.readLine());
+				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
-				connectionrequest = MessageEncryption.decrypt(fromClient.readLine());
+				namee = MessageEncryption.decrypt(((Message)ois.readObject()).getMessage());
 
-				// make sure the client is sending a connection request before
 				// connecting
-				if (checkName2(this, namee) && connectionrequest.equals(ClientRequestsCommands.getClientConnectionRequest()))
+				if (checkIfNameAlreadyExist(this, namee))
 				{
 
 					// if true then set he class variable = to local variable.
 					name = namee;
 					ClientNames.add(name);
-					// SqlConnection.AddPeople(namee);
 					displayClients();
 
 					nameColor = MessageUtils.randomColor();
-					// WriteToAllClients(nameColor.toString());
 					writeToAllClients(name + " has now joined the room ");
 					MessageUtils.appendToPane(msg_area2, name + " is now connected.. \n", Color.LIGHT_GRAY);
 
-					while ((msgin = MessageEncryption.decrypt(fromClient.readLine())) != null)
+					while ((msgin = (Message)ois.readObject()) != null)
 					{
 
 						System.out.println(msgin + " server checkpoint 1");
-						if (msgin.equalsIgnoreCase((ClientRequestsCommands.getClientexitrequest()).replaceAll("\\s+", "")))
+
+						if (msgin.getSeverCommand() == ServerCommands.TERMINATE_CLIENT)
 						{
+							writeToClient(new Message(ServerCommands.TERMINATE_CLIENT));
 
-							writeToClient(ServerCommands.getTerminateclient(), this.socket);
-
-						} else
-						{
-
+						} else {
+							message = MessageEncryption.decrypt(msgin.getMessage());
 							MessageUtils.appendToPane(msg_area2, getTime() + ": ", Color.LIGHT_GRAY);
 							MessageUtils.appendToPane(msg_area2, name + ": ", nameColor);
-							MessageUtils.appendToPane(msg_area2, msgin + "\n", Color.BLACK);
+							MessageUtils.appendToPane(msg_area2, message + "\n", Color.BLACK);
 
 							// doc.insertString(0, (getTime() + ": " + name + ":
 							// " + msgin + "\n"), null);
-							msgout = msgin;
+							msgout = message;
 							writeToAllClients((getTime() + ": " + name + ": " + msgout));
 						}
 
@@ -389,10 +368,27 @@ public class Server
 
 				}
 
-			} catch (IOException e)
+			} catch (IOException | ClassNotFoundException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}
+		}
+
+		public void writeToClient(Message message)
+		{
+			try
+			{
+
+				if(objectOutputStream==null) {
+					objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+				}
+				objectOutputStream.writeObject(message);
+				objectOutputStream.flush();
+				objectOutputStream.reset();
+
+			} catch (Exception E)
+			{
+				E.printStackTrace();
 			}
 		}
 	}
@@ -431,10 +427,10 @@ public class Server
 		btnRemoveUsr.setBounds(53, 279, 117, 29);
 		panel.add(btnRemoveUsr);
 
-		instaClose = new JButton("Shutdown Immediatley");
-		instaClose.setBounds(414, 279, 172, 29);
-		instaClose.setVisible(false);
-		panel.add(instaClose);
+		instantClose = new JButton("Shutdown Immediatley");
+		instantClose.setBounds(414, 279, 172, 29);
+		instantClose.setVisible(false);
+		panel.add(instantClose);
 
 		lblNewLabel = new JLabel("Users Connected");
 		lblNewLabel.setBounds(37, 21, 115, 16);
@@ -466,7 +462,7 @@ public class Server
 		/*
 		 * Immediately shuts down the server and all clients connected.
 		 */
-		instaClose.addActionListener(new ActionListener()
+		instantClose.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -484,7 +480,6 @@ public class Server
 			{
 				if (e.getKeyCode() == KeyEvent.VK_ENTER)
 				{
-
 					removeUserFromServer();
 				}
 			}
