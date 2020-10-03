@@ -1,4 +1,4 @@
-package main.java.com.ydprojects.client;
+package com.ydprojects.client;
 
 /**
  * 

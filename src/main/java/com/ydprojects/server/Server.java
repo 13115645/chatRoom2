@@ -1,4 +1,4 @@
-package main.java.com.ydprojects.server;
+package com.ydprojects.server;
 
 /**
  * 
@@ -6,10 +6,10 @@ package main.java.com.ydprojects.server;
  * 
  */
 
-import main.java.com.ydprojects.client.ClientRequestsCommands;
-import main.java.com.ydprojects.message.Message;
-import main.java.com.ydprojects.utils.MessageEncryption;
-import main.java.com.ydprojects.utils.MessageUtils;
+import com.ydprojects.client.ClientRequestsCommands;
+import com.ydprojects.message.Message;
+import com.ydprojects.utils.MessageEncryption;
+import com.ydprojects.utils.MessageUtils;
 
 import java.awt.EventQueue;
 import javax.swing.JFrame;
@@ -38,7 +38,6 @@ import javax.swing.JLabel;
 
 public class Server
 {
-
 	private static JFrame frmServer;
 	private JLabel lblNewLabel;
 	private static JScrollPane scrollPane, clientListScrollPane;
@@ -125,12 +124,15 @@ public class Server
 	 */
 	private static void writeToAllClients(String message)
 	{
-		clients.forEach(client -> client.writeToClient(message));
+		clients.forEach(client -> client.writeToClient(new Message(message)));
 	}
+
 	/*
 	 * write a specific message to a single client
 	 */
-
+	private static void writeToAllClients(Message message) {
+		clients.forEach(client -> client.writeToClient(message));
+	}
 
 	/*
 	 * Compares the the name of the current thread with others if exists
@@ -145,8 +147,8 @@ public class Server
 			{
 
 				JOptionPane.showMessageDialog(frmServer, "The name already exists");
-				client.writeToClient("");
-				client.writeToClient(ServerCommands.getTerminateclient());
+				client.writeToClient(new Message(""));
+				client.writeToClient(new Message(ServerCommands.TERMINATE_CLIENT));
 
 				return false;
 			}
@@ -164,7 +166,7 @@ public class Server
 		{
 			if (getClientName.getText().equalsIgnoreCase(client.name))
 			{
-				client.writeToClient(ServerCommands.getServerkickrequest());
+				client.writeToClient(new Message(ServerCommands.SERVER_KICK_REQUEST));
 				JOptionPane.showMessageDialog(frmServer, "User " + client.name + " Removed");
 				displayClients();
 			}
@@ -201,7 +203,7 @@ public class Server
 	 */
 	private static void immediateServerShutdown()
 	{
-		writeToAllClients(ServerCommands.getTerminateclient());
+		writeToAllClients(new Message(ServerCommands.TERMINATE_CLIENT));
 		System.exit(0); // closes the server window
 		if (socket != null)
 		{
@@ -222,7 +224,7 @@ public class Server
 	private static void closeServer()
 	{
 		// starts the timer for the progressbar
-		writeToAllClients(ServerCommands.getServershutdownrequest());
+		writeToAllClients(new Message(ServerCommands.SERVER_SHUTDOWN_REQUEST));
 		btnExit.setVisible(false);
 		instantClose.setVisible(true);
 		btnStopShutdown.setVisible(true);
@@ -242,7 +244,7 @@ public class Server
 					try
 					{
 
-						writeToAllClients(ServerCommands.getTerminateclient());
+						writeToAllClients(new Message(ServerCommands.TERMINATE_CLIENT));
 
 						// socket.close(); // closes the socket
 						System.exit(0); // closes the server window
@@ -277,12 +279,13 @@ public class Server
 	{
 		t.stop();
 		count = 60;
-		writeToAllClients(ServerCommands.getAbortshutdown());
+		writeToAllClients(new Message(ServerCommands.ABORT_SHUTDOWN));
 		btnExit.setVisible(true);
 		instantClose.setVisible(false);
 		btnStopShutdown.setVisible(false);
 		MessageUtils.appendToPane(msg_area2, "Shutdown Aborted \n", Color.GRAY);
 	}
+
 
 	/**
 	 * Create the application.
@@ -319,9 +322,6 @@ public class Server
 				String namee = null;
 				String connectionrequest = null;
 
-				// CheckName(name);
-				//BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
 				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
 				namee = MessageEncryption.decrypt(((Message)ois.readObject()).getMessage());
@@ -351,7 +351,7 @@ public class Server
 						if (msgin.equalsIgnoreCase((ClientRequestsCommands.getClientExitRequest()).replaceAll("\\s+", "")))
 						{
 
-							writeToClient(ServerCommands.getTerminateclient());
+							writeToClient(new Message(ServerCommands.TERMINATE_CLIENT));
 
 						} else
 						{
@@ -379,12 +379,11 @@ public class Server
 
 			} catch (IOException | ClassNotFoundException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 
-		public void writeToClient(String message)
+		public void writeToClient(Message message)
 		{
 			try
 			{
@@ -392,14 +391,9 @@ public class Server
 				if(objectOutputStream==null) {
 					objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
 				}
-				objectOutputStream.writeObject(new Message(message));
+				objectOutputStream.writeObject(message);
 				objectOutputStream.flush();
 				objectOutputStream.reset();
-
-
-		/*	PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-			writer.println(MessageEncryption.encrypt(message));
-			// writer.println(message);*/
 
 			} catch (Exception E)
 			{

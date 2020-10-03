@@ -1,4 +1,4 @@
-package main.java.com.ydprojects.utils;
+package com.ydprojects.utils;
 
 /**
  * 

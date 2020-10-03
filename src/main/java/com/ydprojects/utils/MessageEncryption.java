@@ -1,9 +1,12 @@
-package main.java.com.ydprojects.utils;
+package com.ydprojects.utils;
 /**
  * 
  * @author Yasiru Dahanayake
  * 
  */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -22,6 +25,7 @@ public class MessageEncryption
 	private static String key = "Bar12345Bar12345";
 	private static Cipher cipher;
 	private static Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
+	private static final Logger LOG = LoggerFactory.getLogger(MessageEncryption.class);
 
 	/*
 	 * Encrypts a given string using AES encryption
@@ -59,8 +63,8 @@ public class MessageEncryption
 			cipher = Cipher.getInstance("AES");
 			Base64.Decoder decoder = Base64.getMimeDecoder();
 			cipher.init(Cipher.DECRYPT_MODE, aesKey);
-			if (encryptedString.equals(null)){
-				
+			if (encryptedString == null){
+				LOG.trace("no String present");
 			}else {
 				decrypted = new String(cipher.doFinal(decoder.decode(encryptedString)), "UTF-8");
 			}
@@ -68,7 +72,6 @@ public class MessageEncryption
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
 				| InvalidKeyException | UnsupportedEncodingException | NullPointerException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
