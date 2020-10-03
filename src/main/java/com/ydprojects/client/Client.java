@@ -5,6 +5,7 @@ package com.ydprojects.client;
  */
 
 import com.ydprojects.message.Message;
+import com.ydprojects.server.ServerCommands;
 import com.ydprojects.utils.MessageEncryption;
 import com.ydprojects.utils.MessageUtils;
 import org.slf4j.Logger;
@@ -203,7 +204,6 @@ public class Client {
             frmClient.setTitle(name);
             getNameScreen.setVisible(false);
             clientScreen.setVisible(true);
-            writeMessage(ClientRequestsCommands.getClientConnectionRequest(), socket);
         } else {
             JOptionPane.showMessageDialog(frmClient, "please enter a valid name");
         }
@@ -212,23 +212,22 @@ public class Client {
     /*
      * writes a an encrypted string to server output stream
      */
-    private static void writeMessage(String message, Socket sockett) {
+    private static void writeMessage(Message message, Socket sockett) {
         try {
             if (objectOutputStream == null) {
                 objectOutputStream = new ObjectOutputStream(sockett.getOutputStream());
             }
-            objectOutputStream.writeObject(new Message(message));
+            objectOutputStream.writeObject(message);
             objectOutputStream.flush();
             objectOutputStream.reset();
-
-            //PrintWriter writer = new PrintWriter(sockett.getOutputStream(), true);
-
-            //writer.println(MessageEncryption.encrypt(message));
 
         } catch (Exception E) {
             E.printStackTrace();
         }
+    }
 
+    private static void writeMessage(String message, Socket sockett){
+        writeMessage(new Message(message), sockett);
     }
 
     /*
@@ -338,7 +337,7 @@ public class Client {
             public void actionPerformed(ActionEvent e) {
                 try {
                     if (!socket.isClosed()) {
-                        writeMessage(ClientRequestsCommands.getClientExitRequest(), socket);
+                        writeMessage(new Message(ServerCommands.TERMINATE_CLIENT), socket);
                     } else {
                         socket.close();
                         System.exit(0);

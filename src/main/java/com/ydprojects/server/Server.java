@@ -6,7 +6,6 @@ package com.ydprojects.server;
  * 
  */
 
-import com.ydprojects.client.ClientRequestsCommands;
 import com.ydprojects.message.Message;
 import com.ydprojects.utils.MessageEncryption;
 import com.ydprojects.utils.MessageUtils;
@@ -212,7 +211,6 @@ public class Server
 				socket.close();
 			} catch (IOException e1)
 			{
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
@@ -257,7 +255,6 @@ public class Server
 								socket.close();
 							} catch (IOException e1)
 							{
-								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
 						}
@@ -317,52 +314,46 @@ public class Server
 		{
 			try
 			{
-				String msgin = null;
-				String msgout = null;
-				String namee = null;
-				String connectionrequest = null;
+				Message msgin = null;
+				String message = "";
+				String msgout = "";
+				String namee = "";
 
 				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
 				namee = MessageEncryption.decrypt(((Message)ois.readObject()).getMessage());
 
-				connectionrequest = MessageEncryption.decrypt(((Message)ois.readObject()).getMessage());
-
-				// make sure the client is sending a connection request before
 				// connecting
-				if (checkIfNameAlreadyExist(this, namee) && connectionrequest.equals(ClientRequestsCommands.getClientConnectionRequest()))
+				if (checkIfNameAlreadyExist(this, namee))
 				{
 
 					// if true then set he class variable = to local variable.
 					name = namee;
 					ClientNames.add(name);
-					// SqlConnection.AddPeople(namee);
 					displayClients();
 
 					nameColor = MessageUtils.randomColor();
-					// WriteToAllClients(nameColor.toString());
 					writeToAllClients(name + " has now joined the room ");
 					MessageUtils.appendToPane(msg_area2, name + " is now connected.. \n", Color.LIGHT_GRAY);
 
-					while ((msgin = MessageEncryption.decrypt(((Message)ois.readObject()).getMessage())) != null)
+					while ((msgin = (Message)ois.readObject()) != null)
 					{
 
 						System.out.println(msgin + " server checkpoint 1");
-						if (msgin.equalsIgnoreCase((ClientRequestsCommands.getClientExitRequest()).replaceAll("\\s+", "")))
-						{
 
+						if (msgin.getSeverCommand() == ServerCommands.TERMINATE_CLIENT)
+						{
 							writeToClient(new Message(ServerCommands.TERMINATE_CLIENT));
 
-						} else
-						{
-
+						} else {
+							message = MessageEncryption.decrypt(msgin.getMessage());
 							MessageUtils.appendToPane(msg_area2, getTime() + ": ", Color.LIGHT_GRAY);
 							MessageUtils.appendToPane(msg_area2, name + ": ", nameColor);
-							MessageUtils.appendToPane(msg_area2, msgin + "\n", Color.BLACK);
+							MessageUtils.appendToPane(msg_area2, message + "\n", Color.BLACK);
 
 							// doc.insertString(0, (getTime() + ": " + name + ":
 							// " + msgin + "\n"), null);
-							msgout = msgin;
+							msgout = message;
 							writeToAllClients((getTime() + ": " + name + ": " + msgout));
 						}
 
