@@ -21,7 +21,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class MessageEncryption
 {
-
 	private static String key = "Bar12345Bar12345";
 	private static Cipher cipher;
 	private static Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
@@ -45,7 +44,6 @@ public class MessageEncryption
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
 				| BadPaddingException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return encryptedString;
@@ -81,8 +79,5 @@ public class MessageEncryption
 	public static void main(String[] args)
 	{
 		System.out.println(decrypt("lBJ7ApPnWFJevkNNEzjUM34p7mZXpCiirK7cYndSsBE="));
-	
-	
-		
 	}
 }
