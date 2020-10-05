@@ -167,6 +167,7 @@ public class Server
 			{
 				client.writeToClient(new Message(ServerCommands.SERVER_KICK_REQUEST));
 				JOptionPane.showMessageDialog(frmServer, "User " + client.name + " Removed");
+				clients.remove(client);
 				displayClients();
 			}
 		}
@@ -177,13 +178,8 @@ public class Server
 	 */
 	private static void displayClients()
 	{
-
 		clientList.setText(null);
-
 		clients.forEach(client -> MessageUtils.appendToPane(clientList, client.name + "\n", Color.RED));
-		// MessageUtils.appendToPane(clientList, ClientNames.get(i) + "\n",
-		// Color.RED);
-
 	}
 
 	/*
@@ -344,6 +340,9 @@ public class Server
 						if (msgin.getSeverCommand() == ServerCommands.TERMINATE_CLIENT)
 						{
 							writeToClient(new Message(ServerCommands.TERMINATE_CLIENT));
+							clients.remove(this);
+							displayClients();
+							writeToAllClients(name + " has left the room \n");
 
 						} else {
 							message = MessageEncryption.decrypt(msgin.getMessage());
@@ -351,8 +350,6 @@ public class Server
 							MessageUtils.appendToPane(msg_area2, name + ": ", nameColor);
 							MessageUtils.appendToPane(msg_area2, message + "\n", Color.BLACK);
 
-							// doc.insertString(0, (getTime() + ": " + name + ":
-							// " + msgin + "\n"), null);
 							msgout = message;
 							writeToAllClients((getTime() + ": " + name + ": " + msgout));
 						}
